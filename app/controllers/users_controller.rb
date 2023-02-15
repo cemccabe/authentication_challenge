@@ -1,4 +1,6 @@
 class UsersController <ApplicationController 
+    before_action :validate_user, only: :show
+    
     def index
 
     end
@@ -14,6 +16,7 @@ class UsersController <ApplicationController
     def create 
         user = User.create(user_params)
         if user.save
+            session[:user_id] = user.id
             redirect_to user_path(user)
         else  
             flash[:error] = user.errors.full_messages.to_sentence
@@ -27,12 +30,19 @@ class UsersController <ApplicationController
     def login_user
         user = User.find_by(email: params[:email])
         if user && user.authenticate(params[:password])
+            session[:user_id] = user.id
             redirect_to user_path(user)
             flash[:success] = "Welcome, #{user.email}"
         else
             render :login_form
             flash[:error] = 'Invalid login'
         end
+    end
+
+    def logout_user
+        session.delete(:user_id)
+        @user = nil
+        redirect_to root_path
     end
 
     private 
